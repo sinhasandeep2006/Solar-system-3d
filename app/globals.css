@@ -1,0 +1,210 @@
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body {
+  height: 100%;
+  background: #05060a;
+  color: #e8ecf5;
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+  overflow: hidden;
+}
+
+#scene { position: fixed; inset: 0; }
+
+/* ---- HUD ---- */
+.hud {
+  position: fixed;
+  z-index: 1;
+  padding: 14px 16px;
+  border: 1px solid rgba(140, 165, 220, 0.18);
+  border-radius: 12px;
+  background: rgba(10, 14, 26, 0.62);
+  backdrop-filter: blur(10px);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.hud-top { top: 16px; left: 16px; max-width: 320px; }
+.hud-top h1 { font-size: 16px; font-weight: 600; letter-spacing: 0.2px; }
+.hud-top p { margin-top: 4px; color: #93a0bd; font-size: 12px; }
+
+.hud-controls { bottom: 16px; left: 16px; width: 280px; }
+.hud-controls .row { display: flex; align-items: center; gap: 8px; }
+.hud-controls .slider { margin-top: 10px; }
+.hud-controls .slider span { color: #93a0bd; }
+.hud-controls input[type="range"] { flex: 1; accent-color: #ffcc55; }
+.hud-controls output { min-width: 46px; text-align: right; font-variant-numeric: tabular-nums; }
+.hud-controls .note { margin-top: 10px; color: #7c88a6; font-size: 11px; }
+
+.seg {
+  flex: 1;
+  padding: 7px 10px;
+  border: 1px solid rgba(140, 165, 220, 0.25);
+  border-radius: 8px;
+  background: transparent;
+  color: #c3ccdf;
+  font: inherit;
+  cursor: pointer;
+}
+.seg:hover { border-color: rgba(255, 204, 85, 0.5); }
+.seg.on { background: rgba(255, 204, 85, 0.16); border-color: #ffcc55; color: #ffe9b0; }
+
+.hud-info { top: 16px; right: 16px; width: 270px; }
+.hud-info h2 { font-size: 20px; font-weight: 600; margin-bottom: 10px; }
+.hud-info dl { display: grid; grid-template-columns: 1fr; gap: 2px; }
+.hud-info dt { color: #7c88a6; font-size: 11px; text-transform: uppercase; letter-spacing: 0.6px; margin-top: 8px; }
+.hud-info dd { font-variant-numeric: tabular-nums; }
+.hud-info .dim { color: #7c88a6; }
+.back {
+  margin-top: 16px;
+  width: 100%;
+  padding: 8px;
+  border: 1px solid rgba(140, 165, 220, 0.25);
+  border-radius: 8px;
+  background: transparent;
+  color: #c3ccdf;
+  font: inherit;
+  cursor: pointer;
+}
+.back:hover { border-color: #ffcc55; color: #ffe9b0; }
+
+:focus-visible { outline: 2px solid #ffcc55; outline-offset: 2px; }
+
+@media (max-width: 640px) {
+  .hud-top { max-width: none; right: 16px; }
+  .hud-controls { width: auto; right: 16px; }
+  .hud-info { top: auto; bottom: 160px; left: 16px; width: auto; }
+}
+
+/* ---- added: labels, chips, richer info panel ---- */
+/* One full-screen layer holds every label; each span carries its own
+   coordinates, written straight to style.transform in useFrame. */
+.label-layer { position: absolute; inset: 0; pointer-events: none; }
+.label {
+  position: absolute;
+  top: 0;
+  left: 0;
+  white-space: nowrap;
+  font-size: 11px;
+  letter-spacing: 0.4px;
+  color: #cbd5ea;
+  text-shadow: 0 0 6px #05060a, 0 0 2px #05060a;
+  cursor: pointer;
+  transition: opacity 0.18s ease;
+  will-change: transform, opacity;
+}
+.label:hover { color: #ffe9b0; }
+.label.dwarf { color: #8d9ab7; font-size: 10px; }
+.label.moon { color: #94a4c4; font-size: 10px; }
+.label.on { color: #ffe9b0; font-weight: 600; }
+
+.hud-controls .chips { flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.chip {
+  padding: 4px 9px;
+  border: 1px solid rgba(140, 165, 220, 0.25);
+  border-radius: 999px;
+  background: transparent;
+  color: #93a0bd;
+  font: inherit;
+  font-size: 11px;
+  cursor: pointer;
+}
+.chip:hover { border-color: rgba(255, 204, 85, 0.5); color: #e8ecf5; }
+.chip.on { background: rgba(255, 204, 85, 0.14); border-color: rgba(255, 204, 85, 0.7); color: #ffe9b0; }
+
+.hud-info { max-height: calc(100vh - 32px); overflow-y: auto; width: 300px; }
+.hud-info .kicker {
+  color: #7c88a6;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+.hud-info h2 { margin-top: 2px; }
+.moon-list { display: flex; flex-wrap: wrap; gap: 4px; margin: 4px 0; }
+.moon-list .chip { font-size: 10px; padding: 3px 7px; }
+.back.subtle { margin-top: 12px; font-size: 12px; padding: 6px; }
+
+.hud-info .note-body {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(140, 165, 220, 0.16);
+  color: #a7b2c9;
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.hud-controls .epoch { margin-top: 10px; font-variant-numeric: tabular-nums; }
+.hud-controls .epoch strong { color: #e8ecf5; font-weight: 600; }
+.warn { color: #e0a04a; }
+
+/* ---- time controls ---- */
+.hud-controls .time-row { margin-top: 10px; gap: 6px; }
+.hud-controls .date { flex: 1; font-size: 13px; font-variant-numeric: tabular-nums; }
+.hud-controls input[type="date"] {
+  flex: 1;
+  padding: 4px 6px;
+  border: 1px solid rgba(140, 165, 220, 0.25);
+  border-radius: 6px;
+  background: transparent;
+  color: #e8ecf5;
+  font: inherit;
+  font-size: 11px;
+  color-scheme: dark;
+}
+.hud-controls .speed-note { margin-top: 6px; }
+
+/* ---- sky chart ---- */
+.hud-sky {
+  top: 16px;
+  right: 336px;
+  width: 324px;
+  max-height: calc(100vh - 32px);
+  overflow-y: auto;
+}
+.sky-head { display: flex; align-items: flex-start; justify-content: space-between; }
+.close {
+  border: none;
+  background: transparent;
+  color: #7c88a6;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 2px;
+}
+.close:hover { color: #ffe9b0; }
+.hud-sky h2 { font-size: 17px; font-weight: 600; margin: 2px 0 10px; }
+.sky-svg { width: 100%; height: auto; display: block; }
+.sky-bg { fill: rgba(5, 8, 18, 0.75); stroke: rgba(140, 165, 220, 0.14); }
+.sky-track { fill: none; stroke: #6d84b8; stroke-width: 1.4; }
+.sky-retro { fill: none; stroke: #ffcc55; stroke-width: 2.2; }
+.sky-legend { display: flex; align-items: center; gap: 6px; margin-top: 8px; font-size: 11px; color: #93a0bd; }
+.swatch { display: inline-block; width: 14px; height: 3px; border-radius: 2px; }
+.swatch.prograde { background: #6d84b8; }
+.swatch.retro { background: #ffcc55; margin-left: 10px; }
+.sky-facts { display: grid; grid-template-columns: 1fr; gap: 1px; margin-top: 12px; }
+.sky-facts dt { color: #7c88a6; font-size: 10px; text-transform: uppercase; letter-spacing: 0.6px; margin-top: 7px; }
+.sky-facts dd { font-size: 12px; font-variant-numeric: tabular-nums; }
+.sky-picker { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 14px; }
+
+@media (max-width: 1100px) {
+  .hud-sky { right: 16px; top: auto; bottom: 16px; }
+}
+
+/* ---- time travel panel (opt-in) ---- */
+.hud-time { top: 176px; left: 16px; width: 280px; }
+.hud-time .date { display: block; margin: 2px 0 10px; font-size: 16px; font-variant-numeric: tabular-nums; }
+.hud-time .row.chips { margin-top: 10px; gap: 6px; }
+.hud-time .note { margin-top: 10px; color: #7c88a6; font-size: 11px; }
+.hud-time input[type="date"] {
+  flex: 1;
+  padding: 4px 6px;
+  border: 1px solid rgba(140, 165, 220, 0.25);
+  border-radius: 6px;
+  background: transparent;
+  color: #e8ecf5;
+  font: inherit;
+  font-size: 12px;
+  color-scheme: dark;
+}
+@media (max-width: 640px) {
+  .hud-time { top: auto; bottom: 330px; right: 16px; width: auto; }
+}
