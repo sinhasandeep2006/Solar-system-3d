@@ -323,6 +323,8 @@ export default function Overlay() {
   const moon = body ? undefined : MOONS.find((m) => m.name === focused);
   const comet = body || moon ? undefined : COMETS.find((c) => c.name === focused);
   const setSkyBody = useSolar((s) => s.setSkyBody);
+  // Phones only: the controls hide behind a round button. Desktop CSS ignores it.
+  const [controlsOpen, setControlsOpen] = useState(false);
 
   return (
     <>
@@ -357,7 +359,24 @@ export default function Overlay() {
         </p>
       </header>
 
-      <div className="hud hud-controls">
+      <button
+        className="controls-fab"
+        onClick={() => setControlsOpen(!controlsOpen)}
+        aria-expanded={controlsOpen}
+        aria-controls="controls"
+        aria-label={controlsOpen ? "Close controls" : "Open controls"}
+      >
+        {controlsOpen ? "×" : (
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden>
+            <path d="M4 6h10M18 6h2M4 12h2M10 12h10M4 18h12M20 18h0" />
+            <circle cx="16" cy="6" r="2" />
+            <circle cx="8" cy="12" r="2" />
+            <circle cx="18" cy="18" r="2" />
+          </svg>
+        )}
+      </button>
+
+      <div id="controls" className={controlsOpen ? "hud hud-controls open" : "hud hud-controls"}>
         <div className="row" role="group" aria-label="Distance scale">
           <button
             className={scaleMode === "compressed" ? "seg on" : "seg"}

@@ -69,12 +69,6 @@ html, body {
 
 :focus-visible { outline: 2px solid #ffcc55; outline-offset: 2px; }
 
-@media (max-width: 640px) {
-  .hud-top { max-width: none; right: 16px; }
-  .hud-controls { width: auto; right: 16px; }
-  .hud-info { top: auto; bottom: 160px; left: 16px; width: auto; }
-}
-
 /* ---- added: labels, chips, richer info panel ---- */
 /* One full-screen layer holds every label; each span carries its own
    coordinates, written straight to style.transform in useFrame. */
@@ -186,7 +180,7 @@ html, body {
 .sky-picker { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 14px; }
 
 @media (max-width: 1100px) {
-  .hud-sky { right: 16px; top: auto; bottom: 16px; }
+  .hud-sky { right: 16px; top: auto; bottom: 16px; z-index: 2; }
 }
 
 /* ---- time travel panel (opt-in) ---- */
@@ -205,6 +199,71 @@ html, body {
   font-size: 12px;
   color-scheme: dark;
 }
+.controls-fab { display: none; }
+
+/* ---- phones ----
+   Header shrinks to a title, controls hide behind a round button (bottom right)
+   and open as a compact panel with swipeable chip rows, and detail panels open as bottom sheets over it.
+   Stack order: controls < info < sky; time travel docks under the title. */
 @media (max-width: 640px) {
-  .hud-time { top: auto; bottom: 330px; right: 16px; width: auto; }
+  .hud { padding: 10px 12px; }
+
+  .hud-top { top: 8px; left: 8px; right: 8px; max-width: none; }
+  .hud-top h1 { font-size: 14px; }
+  .hud-top p { display: none; }
+
+  .hud-controls { left: 8px; right: 8px; bottom: calc(76px + env(safe-area-inset-bottom)); width: auto; }
+  .hud-controls:not(.open) { display: none; }
+  .controls-fab {
+    display: grid;
+    place-items: center;
+    position: fixed;
+    z-index: 1;
+    right: 12px;
+    bottom: calc(12px + env(safe-area-inset-bottom));
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 204, 85, 0.5);
+    background: rgba(10, 14, 26, 0.85);
+    backdrop-filter: blur(10px);
+    color: #ffe9b0;
+    font-size: 28px;
+    line-height: 1;
+    cursor: pointer;
+  }
+  .hud-controls .note { display: none; }
+  .hud-controls .row.chips {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+    margin-left: -12px;
+    margin-right: -12px;
+    padding: 0 12px;
+  }
+  .hud-controls .row.chips::-webkit-scrollbar { display: none; }
+  .chip { flex-shrink: 0; padding: 7px 12px; font-size: 12px; }
+  .seg { padding: 9px 10px; }
+  .hud-controls input[type="range"] { height: 28px; }
+
+  .hud-info, .hud-sky {
+    top: auto;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: auto;
+    max-height: 55dvh;
+    border-radius: 16px 16px 0 0;
+    border-bottom: none;
+    padding-bottom: calc(12px + env(safe-area-inset-bottom));
+    background: rgba(10, 14, 26, 0.9);
+    overscroll-behavior: contain;
+  }
+  .hud-info { z-index: 2; }
+  .hud-sky { z-index: 3; }
+  .close { font-size: 26px; padding: 0 6px; }
+  .back { padding: 11px; }
+
+  .hud-time { top: 52px; left: 8px; right: 8px; bottom: auto; width: auto; }
+  .hud-time .date { font-size: 14px; margin-bottom: 6px; }
 }
