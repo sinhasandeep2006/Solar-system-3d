@@ -1,0 +1,16 @@
+Surface maps in this directory, and where they come from.
+
+Everything except pluto.jpg:
+  https://www.solarsystemscope.com/textures/
+  Licensed CC BY 4.0 - https://creativecommons.org/licenses/by/4.0/
+  Attribution: Solar System Scope (solarsystemscope.com)
+  Most are processed from NASA elevation and imagery data. The four dwarf
+  planet maps (ceres, eris, haumea, makemake) are artist impressions - no
+  spacecraft has resolved those surfaces.
+
+pluto.jpg:
+  NASA New Horizons global colour mosaic, public domain.
+  Credit: NASA / Johns Hopkins APL / Southwest Research Institute
+  https://www.nasa.gov/image-feature/pluto-global-color-map
+
+Regenerate with: npm run textures

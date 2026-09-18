@@ -9,7 +9,9 @@ import { anim, damp, safeDelta, useSolar } from "@/lib/store";
 import { COMETS } from "@/lib/comets";
 import { dateToSimYears } from "@/lib/time";
 import { readDeepLink, writeDeepLink } from "@/lib/deeplink";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
+import { bodyTexture } from "@/lib/texture";
+import { realMapUrl, useRealMap } from "@/lib/skins";
 import { ASTEROID_BELT, drawRadius, EARTH_YEAR_SECONDS, KUIPER_BELT, SUN_RADIUS } from "@/lib/scale";
 import Planet from "./Planet";
 import Comet from "./Comet";
@@ -20,6 +22,11 @@ import Overlay from "./Overlay";
 
 function Sun() {
   const setFocused = useSolar((s) => s.setFocused);
+  // Real granulation and sunspots, with the procedural version standing in
+  // until the file lands.
+  const real = useRealMap(realMapUrl("Sun"));
+  const skin = useMemo(() => bodyTexture("#ffcc55", "Star", "Sun"), []);
+  const map = real ?? skin?.map ?? null;
   return (
     <group>
       <mesh
@@ -29,7 +36,12 @@ function Sun() {
         }}
       >
         <sphereGeometry args={[SUN_RADIUS, 64, 64]} />
-        <meshBasicMaterial color="#ffcc55" toneMapped={false} />
+        <meshBasicMaterial
+          key={map?.uuid ?? "flat"}
+          map={map}
+          color={map ? "#ffffff" : "#ffcc55"}
+          toneMapped={false}
+        />
       </mesh>
       {/* Halo shell under the bloom pass: bloom alone leaves a hard edge. */}
       <mesh scale={1.4} raycast={() => null}>
@@ -101,7 +113,10 @@ export default function Scene() {
         onPointerMissed={() => setFocused(null)}
       >
         <color attach="background" args={["#05060a"]} />
-        <ambientLight intensity={0.12} />
+        {/* Deep space has no fill light. This is the little that keeps a night
+            side from being pure black, and lower is what makes the shading
+            on every body read at all. */}
+        <ambientLight intensity={0.05} />
         <Stars radius={MAX_RADIUS * 2} depth={MAX_RADIUS / 2} count={9000} factor={26} fade speed={0} />
 
         <Sun />

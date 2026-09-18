@@ -10,6 +10,9 @@ import { DEG, orbitPath, positionAt } from "@/lib/kepler";
 import { anim, safeDelta, useSolar } from "@/lib/store";
 import { displayRadius, spinAngularSpeed, warpPath, warpVector } from "@/lib/scale";
 import { bodyTexture } from "@/lib/texture";
+import { REAL_BUMP, realMapUrl, useRealMap } from "@/lib/skins";
+import Atmosphere from "./Atmosphere";
+import EarthSkin from "./EarthSkin";
 import Moon from "./Moon";
 import Rings from "./Rings";
 
@@ -47,10 +50,21 @@ export default function Planet({ data }: { data: PlanetData }) {
   }, []);
 
   const radius = displayRadius(data.diameterKm, trueSizes);
-  const texture = useMemo(
-    () => bodyTexture(data.color, data.type, data.name),
-    [data.color, data.type, data.name],
+  // The real map where one exists, the procedural generator where it does
+  // not. Skipping the generator for a mapped body also keeps a few hundred
+  // milliseconds of noise off the main thread at startup.
+  const mapUrl = realMapUrl(data.name);
+  const real = useRealMap(mapUrl);
+  const skin = useMemo(
+    () => (mapUrl ? null : bodyTexture(data.color, data.type, data.name)),
+    [mapUrl, data.color, data.type, data.name],
   );
+  // Cloud tops scatter; rock and dust do not. One number, but it is the
+  // difference between Jupiter looking gaseous and looking like a marble.
+  const gassy = data.type === "Gas giant" || data.type === "Ice giant";
+  const map = real ?? skin?.map ?? null;
+  // Nothing published ships a height map, so the colour map doubles as one.
+  const bumpScale = real ? (gassy ? REAL_BUMP.banded : REAL_BUMP.rocky) : (skin?.bumpScale ?? 0);
   const moons = moonsOf(data.name);
   // Mass of the planet alone: a moon displaces it by (m_moon / m_planet) of
   // its own drawn orbit radius, which is how Pluto ends up visibly circling a
@@ -143,19 +157,34 @@ export default function Planet({ data }: { data: PlanetData }) {
               }}
               onPointerOut={() => setHovered(false)}
             >
-              <sphereGeometry args={[radius, 48, 48]} />
+              <sphereGeometry args={[radius, 64, 64]} />
+              {/* R3F assigns changed props but never sets needsUpdate, so a
+                  material compiled while map was null has no USE_MAP define and
+                  silently ignores the texture when it finally lands. Keying on
+                  the texture rebuilds the material the once, when it swaps. */}
               <meshStandardMaterial
-                map={texture}
-                color={texture ? "#ffffff" : data.color}
-                roughness={0.85}
+                key={map?.uuid ?? "flat"}
+                map={map}
+                bumpMap={real ?? skin?.bump ?? null}
+                bumpScale={bumpScale}
+                color={map ? "#ffffff" : data.color}
+                roughness={gassy ? 0.6 : 0.92}
                 metalness={0}
+                // Just enough to keep the night side from being a hole in the
+                // starfield. Any more and the terminator stops reading.
                 emissive={data.color}
-                emissiveIntensity={hovered || isFocused ? 0.3 : 0.05}
+                emissiveIntensity={hovered || isFocused ? 0.3 : 0.025}
               />
+              {/* Inside the mesh, so the lights and weather turn with the
+                  ground instead of hanging in space. */}
+              {data.name === "Earth" && <EarthSkin radius={radius} />}
             </mesh>
+
+            <Atmosphere name={data.name} radius={radius} />
 
             {data.rings && (
               <Rings
+                name={data.name}
                 rings={data.rings}
                 parentSceneRadius={radius}
                 parentDiameterKm={data.diameterKm}

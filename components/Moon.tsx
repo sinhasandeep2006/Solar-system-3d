@@ -9,6 +9,9 @@ import type { PlanetData } from "@/lib/planets";
 import { type Elements, orbitPath, positionAt } from "@/lib/kepler";
 import { anim, useSolar } from "@/lib/store";
 import { moonDisplayRadius, moonOrbitShape, orbitAngularSpeed, phaseFor } from "@/lib/scale";
+import { bodyTexture } from "@/lib/texture";
+import { REAL_BUMP, realMapUrl, useRealMap } from "@/lib/skins";
+import Atmosphere from "./Atmosphere";
 
 export default function Moon({
   data,
@@ -32,6 +35,16 @@ export default function Moon({
   const trueSizes = useSolar((s) => s.trueSizes);
 
   const radius = moonDisplayRadius(parentSceneRadius, data.diameterKm, parent.diameterKm, trueSizes);
+  // Ours is the only moon with a published global mosaic. The other 34 get a
+  // procedural map at half size — none of them is ever more than a few dozen
+  // pixels across.
+  const mapUrl = realMapUrl(data.name);
+  const real = useRealMap(mapUrl);
+  const skin = useMemo(
+    () => (mapUrl ? null : bodyTexture(data.color, "Moon", data.name)),
+    [mapUrl, data.color, data.name],
+  );
+  const map = real ?? skin?.map ?? null;
   const shape = moonOrbitShape(parentSceneRadius, data.axisKm, data.e, parent.diameterKm);
 
   /**
@@ -98,15 +111,23 @@ export default function Moon({
           }}
           onPointerOut={() => setHovered(false)}
         >
-          <sphereGeometry args={[radius, 20, 20]} />
+          <sphereGeometry args={[radius, 32, 32]} />
+          {/* Keyed for the same reason as Planet: see the note there. */}
           <meshStandardMaterial
-            color={data.color}
-            roughness={0.95}
+            key={map?.uuid ?? "flat"}
+            map={map}
+            bumpMap={real ?? skin?.bump ?? null}
+            bumpScale={real ? REAL_BUMP.rocky : (skin?.bumpScale ?? 0)}
+            color={map ? "#ffffff" : data.color}
+            roughness={0.97}
             metalness={0}
             emissive={data.color}
-            emissiveIntensity={hovered || isFocused ? 0.45 : 0.1}
+            emissiveIntensity={hovered || isFocused ? 0.45 : 0.05}
           />
         </mesh>
+
+        {/* Titan and Triton are the two out here with an atmosphere. */}
+        <Atmosphere name={data.name} radius={radius} />
       </group>
     </>
   );

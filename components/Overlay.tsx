@@ -427,6 +427,14 @@ export default function Overlay() {
             : "√r spacing, applied to distance itself — so orbits cross on screen only where they cross in reality, at the cost of looking slightly rounder than they are. True Scale is exact."}
           {" Moon orbits use their own scale: the real Moon would sit inside Earth."}
         </p>
+
+        <p className="credit">
+          Surface maps{" "}
+          <a href="https://www.solarsystemscope.com/textures/" target="_blank" rel="noreferrer">
+            Solar System Scope
+          </a>{" "}
+          (CC BY 4.0), from NASA imagery. Pluto: NASA/JHUAPL/SwRI.
+        </p>
       </div>
 
       {(body || moon || comet) && (
